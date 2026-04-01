@@ -27,6 +27,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->brandName('Maestro')
             ->sidebarWidth('16rem')
             ->colors([
                 'primary' => Color::Blue,
