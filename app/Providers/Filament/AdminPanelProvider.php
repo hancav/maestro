@@ -29,6 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->brandName('Maestro')
             ->sidebarWidth('16rem')
+            ->sidebarCollapsibleOnDesktop()
             ->colors([
                 'primary' => Color::Blue,
             ])
