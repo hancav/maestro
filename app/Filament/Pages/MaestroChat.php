@@ -2,6 +2,15 @@
 
 namespace App\Filament\Pages;
 
+use App\Support\Maestro\Agent;
+use App\Support\Maestro\AgentPool;
+use App\Support\Maestro\Contracts\LlmProvider;
+use App\Support\Maestro\DTOs\AgentConfig;
+use App\Support\Maestro\Maestro;
+use App\Support\Maestro\Providers\AnthropicProvider;
+use App\Support\Maestro\Providers\AwsBedrockProvider;
+use App\Support\Maestro\Providers\OllamaProvider;
+use App\Support\Maestro\Tools\ToolExecutor;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Log;
 
@@ -97,11 +106,23 @@ class MaestroChat extends Page
         try {
             $this->addProgressUpdate('A processar mensagem...');
 
-            // TODO: Replace with actual Maestro orchestrator call
-            // For now, return a placeholder response
-            $responseText = "O Maestro ainda não está implementado. Esta é uma resposta placeholder.\n\nA tua mensagem foi: \"{$messageToSend}\"";
-            $inputTokens = 0;
-            $outputTokens = 0;
+            $maestro = $this->buildMaestro();
+
+            $progressCallback = function (string $msg, array $meta = []): void {
+                $this->addProgressUpdate($msg, $meta);
+            };
+
+            $result = $maestro->orchestrate(
+                message: $messageToSend,
+                history: $this->buildLlmHistory(),
+                progressCallback: $progressCallback,
+            );
+
+            $responseText = $result->success
+                ? $result->response
+                : 'Erro na orquestração: '.($result->error ?? 'Erro desconhecido');
+            $inputTokens = $result->totalInputTokens;
+            $outputTokens = $result->totalOutputTokens;
 
             $totalTime = round((microtime(true) - $startTime) * 1000, 2);
 
@@ -220,6 +241,75 @@ class MaestroChat extends Page
         if (count($this->chatHistory) > $this->maxUiMessages) {
             $this->chatHistory = array_slice($this->chatHistory, -$this->maxUiMessages);
         }
+    }
+
+    private function buildMaestro(): Maestro
+    {
+        $agentConfigs = config('agents.agents', []);
+        $maestroConfig = config('agents.maestro', []);
+
+        $toolExecutor = new ToolExecutor;
+
+        $providerFactory = function (AgentConfig $config) use ($toolExecutor): Agent {
+            $provider = $this->createProvider($config->provider, $toolExecutor);
+
+            return new Agent(
+                config: $config,
+                provider: $provider,
+                toolExecutor: $toolExecutor,
+            );
+        };
+
+        $pool = new AgentPool($agentConfigs, $providerFactory);
+
+        $routerAgentConfig = AgentConfig::fromArray([
+            'name' => 'maestro-router',
+            'description' => 'Agente de routing do Maestro',
+            'provider' => $maestroConfig['provider'] ?? 'aws-bedrock',
+            'model' => $maestroConfig['model'] ?? 'us.anthropic.claude-3-5-haiku-20241022-v1:0',
+            'system_prompt' => $maestroConfig['system_prompt'] ?? 'Tu és o Maestro.',
+            'temperature' => $maestroConfig['temperature'] ?? 0.3,
+            'max_tokens' => $maestroConfig['max_tokens'] ?? 1024,
+        ]);
+
+        $routerProvider = $this->createProvider($routerAgentConfig->provider, $toolExecutor);
+
+        $routerAgent = new Agent(
+            config: $routerAgentConfig,
+            provider: $routerProvider,
+            toolExecutor: $toolExecutor,
+        );
+
+        return new Maestro(
+            agentPool: $pool,
+            routerAgent: $routerAgent,
+            routerProvider: $routerProvider,
+        );
+    }
+
+    private function createProvider(string $providerName, ToolExecutor $toolExecutor): LlmProvider
+    {
+        return match ($providerName) {
+            'aws-bedrock' => new AwsBedrockProvider($toolExecutor),
+            'anthropic' => new AnthropicProvider($toolExecutor),
+            'ollama' => new OllamaProvider,
+            default => throw new \InvalidArgumentException("Unsupported provider: {$providerName}"),
+        };
+    }
+
+    /**
+     * @return list<array{role: string, content: string}>
+     */
+    private function buildLlmHistory(): array
+    {
+        return collect($this->chatHistory)
+            ->filter(fn (array $msg): bool => in_array($msg['role'], ['user', 'assistant']))
+            ->map(fn (array $msg): array => [
+                'role' => $msg['role'],
+                'content' => $msg['content'],
+            ])
+            ->values()
+            ->toArray();
     }
 
     public function getMaxContentWidth(): ?string
