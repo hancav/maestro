@@ -23,7 +23,7 @@ class Maestro
     ): OrchestrationResult {
         $startTime = microtime(true);
 
-        Log::info('Maestro: tarefa recebida', [
+        Log::channel('maestro')->info('Maestro: tarefa recebida', [
             'message_length' => strlen($message),
             'history_count' => count($history),
         ]);
@@ -39,7 +39,7 @@ class Maestro
         } catch (\Exception $e) {
             $duration = round((microtime(true) - $startTime) * 1000, 2);
 
-            Log::error('Maestro: routing failed', [
+            Log::channel('maestro')->error('Maestro: routing failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'duration_ms' => $duration,
@@ -53,7 +53,7 @@ class Maestro
         $agents = $routingDecision['agents'] ?? [];
         $routedMessage = $routingDecision['message'] ?? $message;
 
-        Log::info('Maestro: routing decidido', [
+        Log::channel('maestro')->info('Maestro: routing decidido', [
             'agents' => $agents,
             'has_custom_message' => isset($routingDecision['message']),
         ]);
@@ -61,7 +61,7 @@ class Maestro
         if (empty($agents)) {
             $duration = round((microtime(true) - $startTime) * 1000, 2);
 
-            Log::warning('Maestro: nenhum agente selecionado', [
+            Log::channel('maestro')->warning('Maestro: nenhum agente selecionado', [
                 'duration_ms' => $duration,
             ]);
 
@@ -123,7 +123,7 @@ class Maestro
         $json = $this->parseRoutingJson($response->text);
 
         if ($json === null) {
-            Log::warning('Maestro: falha ao interpretar routing JSON', [
+            Log::channel('maestro')->warning('Maestro: falha ao interpretar routing JSON', [
                 'raw_response' => $response->text,
             ]);
 
@@ -209,7 +209,7 @@ PROMPT;
 
             $duration = round((microtime(true) - $startTime) * 1000, 2);
 
-            Log::info('Maestro: agente único concluído', [
+            Log::channel('maestro')->info('Maestro: agente único concluído', [
                 'agent' => $agentName,
                 'duration_ms' => $duration,
                 'input_tokens' => $response->inputTokens,
@@ -237,7 +237,7 @@ PROMPT;
         } catch (\Exception $e) {
             $duration = round((microtime(true) - $startTime) * 1000, 2);
 
-            Log::error('Maestro: agente falhou', [
+            Log::channel('maestro')->error('Maestro: agente falhou', [
                 'agent' => $agentName,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),

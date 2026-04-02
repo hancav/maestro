@@ -29,7 +29,7 @@ class Pipeline
         $agentHistory = [];
         $totalAgents = count($agentNames);
 
-        Log::info('Pipeline started', [
+        Log::channel('maestro')->info('Pipeline started', [
             'agents' => $agentNames,
             'total_steps' => $totalAgents,
         ]);
@@ -67,7 +67,7 @@ class Pipeline
                 $totalOutputTokens += $response->outputTokens;
                 $currentInput = $response->text;
 
-                Log::info('Pipeline step completed', [
+                Log::channel('maestro')->info('Pipeline step completed', [
                     'agent' => $agentName,
                     'step' => $stepNumber,
                     'duration_ms' => $stepDuration,
@@ -78,7 +78,7 @@ class Pipeline
                 $stepDuration = round((microtime(true) - ($stepStart ?? $pipelineStart)) * 1000, 2);
                 $totalDuration = round((microtime(true) - $pipelineStart) * 1000, 2);
 
-                Log::error('Pipeline step failed', [
+                Log::channel('maestro')->error('Pipeline step failed', [
                     'agent' => $agentName,
                     'step' => $stepNumber,
                     'error' => $e->getMessage(),
@@ -97,7 +97,7 @@ class Pipeline
 
         $totalDuration = round((microtime(true) - $pipelineStart) * 1000, 2);
 
-        Log::info('Pipeline completed', [
+        Log::channel('maestro')->info('Pipeline completed', [
             'total_steps' => $totalAgents,
             'total_duration_ms' => $totalDuration,
             'total_input_tokens' => $totalInputTokens,

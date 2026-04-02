@@ -14,7 +14,7 @@ return [
 
     'maestro' => [
         'provider' => env('MAESTRO_PROVIDER', 'aws-bedrock'),
-        'model' => env('MAESTRO_MODEL', 'us.anthropic.claude-3-5-haiku-20241022-v1:0'),
+        'model' => env('MAESTRO_MODEL', 'us.amazon.nova-pro-v1:0'),
         'temperature' => 0.3,
         'max_tokens' => 1024,
         'system_prompt' => 'Tu és o Maestro, um orquestrador inteligente de agentes de IA.',

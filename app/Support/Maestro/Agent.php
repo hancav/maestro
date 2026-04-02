@@ -53,7 +53,7 @@ class Agent
             $durationMs = round((microtime(true) - $startTime) * 1000, 2);
 
             if (empty(trim($response->text))) {
-                Log::warning('Agent returned empty response', [
+                Log::channel('maestro')->warning('Agent returned empty response', [
                     'agent' => $this->config->name,
                     'duration_ms' => $durationMs,
                 ]);
@@ -83,7 +83,7 @@ class Agent
         } catch (\Exception $e) {
             $durationMs = round((microtime(true) - $startTime) * 1000, 2);
 
-            Log::error('Agent execution failed', [
+            Log::channel('maestro')->error('Agent execution failed', [
                 'agent' => $this->config->name,
                 'error' => $e->getMessage(),
                 'duration_ms' => $durationMs,
