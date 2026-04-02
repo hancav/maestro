@@ -18,13 +18,15 @@ class MaestroChat extends Page
 
     protected static ?string $navigationLabel = 'Maestro';
 
-    protected static ?string $slug = 'maestro';
+    protected static ?string $slug = '/';
 
     protected static ?string $title = '';
 
     protected string $view = 'filament.pages.maestro-chat';
 
     protected static ?int $navigationSort = 1;
+
+    protected static bool $shouldRegisterNavigation = true;
 
     // UI State
     public string $userMessage = '';

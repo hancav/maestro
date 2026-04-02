@@ -1,5 +1,3 @@
-<div class="maestro-msg {{ $message['role'] === 'user' ? 'maestro-msg-user' : ($message['role'] === 'system' ? 'maestro-msg-system' : 'maestro-msg-assistant') }}">
-    <div class="maestro-bubble {{ $message['role'] === 'user' ? 'maestro-bubble-user' : ($message['role'] === 'system' ? 'maestro-bubble-system' : 'maestro-bubble-assistant') }}">
-        {{ $message['content'] }}
-    </div>
+<div class="mc-row {{ $message['role'] === 'user' ? 'mc-row-u' : ($message['role'] === 'system' ? 'mc-row-s' : 'mc-row-a') }}">
+    <div class="mc-bub {{ $message['role'] === 'user' ? 'mc-bub-u' : ($message['role'] === 'system' ? 'mc-bub-s' : 'mc-bub-a') }}">{{ $message['content'] }}</div>
 </div>

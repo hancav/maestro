@@ -1,181 +1,128 @@
 <x-filament::page>
     <style>
-        .maestro-chat-container { display: flex; flex-direction: column; height: calc(100vh - 200px); min-height: 400px; }
-        .maestro-messages { flex: 1; overflow-y: auto; padding: 1.5rem; }
-        .maestro-input-area { border-top: 1px solid var(--gray-200); padding: 1rem; display: flex; gap: 0.75rem; align-items: flex-start; }
-        .maestro-input-area textarea { flex: 1; resize: none; border: 1px solid var(--gray-300); border-radius: 0.5rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-family: inherit; outline: none; min-height: 40px; }
-        .maestro-input-area textarea:focus { border-color: var(--primary-500); box-shadow: 0 0 0 1px var(--primary-500); }
-        .maestro-send-btn { padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 500; color: white; background: var(--primary-600); }
-        .maestro-send-btn:hover { background: var(--primary-700); }
-        .maestro-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .maestro-msg { margin-bottom: 1rem; display: flex; }
-        .maestro-msg-user { justify-content: flex-end; }
-        .maestro-msg-assistant { justify-content: flex-start; }
-        .maestro-msg-system { justify-content: center; }
-        .maestro-bubble { max-width: 75%; padding: 0.75rem 1rem; border-radius: 0.75rem; font-size: 0.875rem; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; }
-        .maestro-bubble-user { background: var(--primary-50); color: var(--gray-900); }
-        .maestro-bubble-assistant { background: var(--gray-50); border: 1px solid var(--gray-200); color: var(--gray-900); }
-        .maestro-bubble-system { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; font-size: 0.8rem; }
-        .maestro-empty { display: flex; align-items: center; justify-content: center; height: 100%; text-align: center; }
-        .maestro-empty h2 { font-size: 1.5rem; font-weight: 700; color: var(--gray-900); margin-bottom: 0.5rem; }
-        .maestro-empty p { color: var(--gray-500); font-size: 0.875rem; margin-bottom: 2rem; }
-        .maestro-examples { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; max-width: 600px; margin: 0 auto; }
-        .maestro-example-btn { padding: 1rem; text-align: left; border: 1px solid var(--gray-200); border-radius: 0.75rem; background: white; cursor: pointer; font-size: 0.8rem; color: var(--gray-700); transition: border-color 0.15s; }
-        .maestro-example-btn:hover { border-color: var(--primary-500); }
-        .maestro-example-btn strong { display: block; margin-bottom: 0.25rem; color: var(--gray-900); }
-        .maestro-header { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem; border-bottom: 1px solid var(--gray-200); font-size: 0.75rem; color: var(--gray-500); }
-        .maestro-clear-btn { padding: 0.35rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--gray-300); background: white; cursor: pointer; font-size: 0.75rem; color: var(--gray-600); }
-        .maestro-clear-btn:hover { background: var(--gray-50); }
-        .maestro-progress { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--gray-200); font-size: 0.75rem; color: var(--gray-500); }
-        .maestro-thinking { animation: maestro-pulse 1.5s ease-in-out infinite; font-size: 0.875rem; color: var(--gray-500); padding: 0.75rem 1rem; }
-        @keyframes maestro-pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
-        .maestro-progress-item { padding: 0.15rem 0; font-size: 0.75rem; color: var(--gray-500); }
-        .maestro-progress-item .time { color: var(--primary-600); font-weight: 600; margin-left: 0.5rem; }
+        /* Container */
+        .mc-wrap { display:flex; flex-direction:column; height:calc(100vh - 180px); min-height:400px; border-radius:0.75rem; overflow:hidden; border:1px solid rgba(128,128,128,0.15); }
+
+        /* Header */
+        .mc-head { display:flex; align-items:center; justify-content:space-between; padding:0.6rem 1rem; border-bottom:1px solid rgba(128,128,128,0.15); font-size:0.75rem; }
+        .mc-head-label { opacity:0.5; }
+        .mc-head-btn { padding:0.3rem 0.7rem; border-radius:0.375rem; border:1px solid rgba(128,128,128,0.25); background:transparent; cursor:pointer; font-size:0.7rem; opacity:0.7; }
+        .mc-head-btn:hover { opacity:1; }
+
+        /* Messages area */
+        .mc-msgs { flex:1; overflow-y:auto; padding:1.5rem; }
+
+        /* Empty state */
+        .mc-empty { display:flex; align-items:center; justify-content:center; height:100%; text-align:center; }
+        .mc-empty h2 { font-size:1.25rem; font-weight:600; margin-bottom:0.25rem; }
+        .mc-empty p { opacity:0.45; font-size:0.8rem; margin-bottom:1.5rem; }
+        .mc-examples { display:flex; gap:0.75rem; justify-content:center; flex-wrap:wrap; }
+        .mc-ex-btn { padding:0.75rem 1rem; text-align:left; border:1px solid rgba(128,128,128,0.2); border-radius:0.5rem; background:transparent; cursor:pointer; font-size:0.78rem; max-width:240px; transition:border-color 0.15s; }
+        .mc-ex-btn:hover { border-color:rgba(128,128,128,0.5); }
+        .mc-ex-btn strong { display:block; margin-bottom:0.2rem; font-size:0.8rem; }
+        .mc-ex-btn span { opacity:0.5; font-size:0.72rem; }
+
+        /* Message bubbles */
+        .mc-row { margin-bottom:0.75rem; display:flex; }
+        .mc-row-u { justify-content:flex-end; }
+        .mc-row-a { justify-content:flex-start; }
+        .mc-row-s { justify-content:center; }
+        .mc-bub { max-width:72%; padding:0.65rem 0.9rem; border-radius:0.6rem; font-size:0.85rem; line-height:1.55; white-space:pre-wrap; word-wrap:break-word; }
+        .mc-bub-u { background:rgba(59,130,246,0.12); }
+        .mc-bub-a { border:1px solid rgba(128,128,128,0.15); }
+        .mc-bub-s { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#dc2626; font-size:0.78rem; }
+
+        /* Progress inside bubble */
+        .mc-prog { margin-top:0.5rem; padding-top:0.4rem; border-top:1px solid rgba(128,128,128,0.12); font-size:0.7rem; opacity:0.6; }
+        .mc-prog summary { cursor:pointer; }
+        .mc-prog-item { padding:0.1rem 0; }
+        .mc-prog-item .t { color:rgba(59,130,246,0.8); font-weight:600; margin-left:0.4rem; }
+
+        /* Thinking animation */
+        .mc-think { animation:mc-pulse 1.5s ease-in-out infinite; font-size:0.82rem; opacity:0.5; padding:0.5rem 0; }
+        @keyframes mc-pulse { 0%,100%{opacity:0.3} 50%{opacity:0.7} }
+
+        /* Input area */
+        .mc-input { display:flex; gap:0.6rem; align-items:flex-end; padding:0.75rem 1rem; border-top:1px solid rgba(128,128,128,0.15); }
+        .mc-input textarea { flex:1; resize:none; border:1px solid rgba(128,128,128,0.25); border-radius:0.5rem; padding:0.5rem 0.7rem; font-size:0.85rem; font-family:inherit; outline:none; background:transparent; color:inherit; min-height:38px; }
+        .mc-input textarea:focus { border-color:rgba(59,130,246,0.5); box-shadow:0 0 0 2px rgba(59,130,246,0.15); }
+        .mc-input textarea::placeholder { opacity:0.4; }
+        .mc-send { padding:0.45rem 1rem; border-radius:0.5rem; border:none; cursor:pointer; font-size:0.8rem; font-weight:500; color:#fff; background:#3b82f6; }
+        .mc-send:hover { background:#2563eb; }
+        .mc-send:disabled { opacity:0.4; cursor:not-allowed; }
     </style>
 
-    <div class="fi-section rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
+    <div class="mc-wrap">
         {{-- Header --}}
-        <div class="maestro-header">
-            <div>
+        <div class="mc-head">
+            <span class="mc-head-label">
                 @if($totalInputTokens > 0 || $totalOutputTokens > 0)
-                    {{ count($chatHistory) }} msgs &middot;
-                    {{ number_format($totalInputTokens) }} in &middot;
-                    {{ number_format($totalOutputTokens) }} out
+                    {{ count($chatHistory) }} msgs &middot; {{ number_format($totalInputTokens + $totalOutputTokens) }} tokens
                 @else
-                    Maestro Orchestrator
+                    Maestro
                 @endif
-            </div>
-            <button wire:click="clearHistory" class="maestro-clear-btn">Nova conversa</button>
+            </span>
+            <button wire:click="clearHistory" class="mc-head-btn">Nova conversa</button>
         </div>
 
-        <div class="maestro-chat-container">
-            {{-- Messages --}}
-            <div class="maestro-messages" id="chat-messages">
-
-                @if(empty($chatHistory))
-                    <div class="maestro-empty" wire:loading.remove wire:target="sendMessage">
-                        <div>
-                            <h2>Maestro</h2>
-                            <p>Orquestrador multi-agente inteligente</p>
-                            <div class="maestro-examples">
-                                <button wire:click="askQuestion('Traduz para inglês: Portugal é um país com uma história rica.')" class="maestro-example-btn">
-                                    <strong>Traduzir texto</strong>
-                                    Testar o agente tradutor
-                                </button>
-                                <button wire:click="askQuestion('Resume em 3 frases o que é inteligência artificial.')" class="maestro-example-btn">
-                                    <strong>Resumir um tópico</strong>
-                                    Testar o agente sumarizador
-                                </button>
-                            </div>
+        {{-- Messages --}}
+        <div class="mc-msgs" id="chat-messages">
+            @if(empty($chatHistory))
+                <div class="mc-empty" wire:loading.remove wire:target="sendMessage">
+                    <div>
+                        <h2>Maestro</h2>
+                        <p>Orquestrador multi-agente</p>
+                        <div class="mc-examples">
+                            <button wire:click="askQuestion('Traduz para inglês: Portugal é um país com uma história rica.')" class="mc-ex-btn">
+                                <strong>Traduzir texto</strong>
+                                <span>Testar o agente tradutor</span>
+                            </button>
+                            <button wire:click="askQuestion('Resume em 3 frases o que é inteligência artificial.')" class="mc-ex-btn">
+                                <strong>Resumir tópico</strong>
+                                <span>Testar o agente sumarizador</span>
+                            </button>
                         </div>
                     </div>
-                @endif
+                </div>
+            @endif
 
-                <div>
-                    @foreach($chatHistory as $message)
-                        <div class="maestro-msg {{ $message['role'] === 'user' ? 'maestro-msg-user' : ($message['role'] === 'system' ? 'maestro-msg-system' : 'maestro-msg-assistant') }}">
-                            <div class="maestro-bubble {{ $message['role'] === 'user' ? 'maestro-bubble-user' : ($message['role'] === 'system' ? 'maestro-bubble-system' : 'maestro-bubble-assistant') }}">
-                                {{ $message['content'] }}
+            <div>
+                @foreach($chatHistory as $message)
+                    <div class="mc-row {{ $message['role'] === 'user' ? 'mc-row-u' : ($message['role'] === 'system' ? 'mc-row-s' : 'mc-row-a') }}">
+                        <div class="mc-bub {{ $message['role'] === 'user' ? 'mc-bub-u' : ($message['role'] === 'system' ? 'mc-bub-s' : 'mc-bub-a') }}">{{ $message['content'] }}@if($message['role'] === 'assistant' && !empty($message['progress']))<div class="mc-prog"><details><summary>{{ count($message['progress']) }} passos @if(isset($message['total_time_ms']))&middot; {{ number_format($message['total_time_ms'], 0) }}ms @endif</summary>@foreach($message['progress'] as $step)<div class="mc-prog-item">✓ {{ $step['message'] }}@if(isset($step['step_duration_ms']) && $step['step_duration_ms'] !== null)<span class="t">{{ $step['step_duration_ms'] }}ms</span>@endif</div>@endforeach</details></div>@endif</div>
+                    </div>
+                @endforeach
 
-                                @if($message['role'] === 'assistant' && !empty($message['progress']))
-                                    <div class="maestro-progress">
-                                        <details>
-                                            <summary style="cursor:pointer;">
-                                                {{ count($message['progress']) }} passos
-                                                @if(isset($message['total_time_ms']))
-                                                    &middot; {{ number_format($message['total_time_ms'], 0) }}ms
-                                                @endif
-                                            </summary>
-                                            <div style="margin-top:0.25rem;">
-                                                @foreach($message['progress'] as $step)
-                                                    <div class="maestro-progress-item">
-                                                        &#10003; {{ $step['message'] }}
-                                                        @if(isset($step['step_duration_ms']) && $step['step_duration_ms'] !== null)
-                                                            <span class="time">{{ $step['step_duration_ms'] }}ms</span>
-                                                        @endif
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </details>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    @endforeach
+                <div wire:stream="chat-messages-stream"></div>
 
-                    {{-- Streamed messages --}}
-                    <div wire:stream="chat-messages-stream"></div>
-
-                    {{-- Loading --}}
-                    <div wire:loading wire:target="sendMessage">
-                        <div class="maestro-msg maestro-msg-assistant">
-                            <div class="maestro-bubble maestro-bubble-assistant">
-                                <div class="maestro-thinking">A pensar...</div>
-                                <div wire:stream="realtime-progress" style="margin-top:0.5rem;"></div>
-                            </div>
+                <div wire:loading wire:target="sendMessage">
+                    <div class="mc-row mc-row-a">
+                        <div class="mc-bub mc-bub-a">
+                            <div class="mc-think">A pensar...</div>
+                            <div wire:stream="realtime-progress"></div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            {{-- Input --}}
-            <div class="maestro-input-area">
-                <textarea wire:model="userMessage"
-                          rows="1"
-                          id="user-message-input"
-                          placeholder="Escreva a sua mensagem..."
-                          wire:loading.attr="disabled"></textarea>
-                <button wire:click="sendMessage"
-                        class="maestro-send-btn"
-                        wire:loading.attr="disabled"
-                        wire:target="sendMessage">
-                    Enviar
-                </button>
-            </div>
+        {{-- Input --}}
+        <div class="mc-input">
+            <textarea wire:model="userMessage" rows="1" id="user-message-input" placeholder="Escreva a sua mensagem..." wire:loading.attr="disabled"></textarea>
+            <button wire:click="sendMessage" class="mc-send" wire:loading.attr="disabled" wire:target="sendMessage">Enviar</button>
         </div>
     </div>
 
     @push('scripts')
     <script>
-        document.addEventListener('livewire:initialized', () => {
-            function scrollToBottom() {
-                const el = document.getElementById('chat-messages');
-                if (el) el.scrollTop = el.scrollHeight;
-            }
-
-            Livewire.hook('morph.updated', () => {
-                setTimeout(scrollToBottom, 100);
-            });
-
-            Livewire.hook('commit', ({ succeed }) => {
-                succeed(() => setTimeout(() => {
-                    scrollToBottom();
-                    const input = document.getElementById('user-message-input');
-                    if (input && !input.disabled) input.focus();
-                }, 150));
-            });
-
-            const textarea = document.getElementById('user-message-input');
-            if (textarea) {
-                textarea.focus();
-                textarea.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        Livewire.find(textarea.closest('[wire\\:id]').getAttribute('wire:id')).call('sendMessage');
-                    }
-                });
-                textarea.addEventListener('input', function() {
-                    this.style.height = 'auto';
-                    this.style.height = Math.min(this.scrollHeight, 200) + 'px';
-                });
-            }
-
-            const observer = new MutationObserver(scrollToBottom);
-            ['realtime-progress', 'chat-messages-stream'].forEach(name => {
-                const el = document.querySelector(`[wire\\:stream="${name}"]`);
-                if (el) observer.observe(el, { childList: true, subtree: true });
-            });
-        });
+    document.addEventListener('livewire:initialized',()=>{
+        function sb(){const e=document.getElementById('chat-messages');if(e)e.scrollTop=e.scrollHeight}
+        Livewire.hook('morph.updated',()=>setTimeout(sb,100));
+        Livewire.hook('commit',({succeed})=>{succeed(()=>setTimeout(()=>{sb();const i=document.getElementById('user-message-input');if(i&&!i.disabled)i.focus()},150))});
+        const t=document.getElementById('user-message-input');
+        if(t){t.focus();t.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();Livewire.find(t.closest('[wire\\:id]').getAttribute('wire:id')).call('sendMessage')}});t.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,200)+'px'})}
+        const o=new MutationObserver(sb);['realtime-progress','chat-messages-stream'].forEach(n=>{const e=document.querySelector(`[wire\\:stream="${n}"]`);if(e)o.observe(e,{childList:true,subtree:true})});
+    });
     </script>
     @endpush
 </x-filament::page>
