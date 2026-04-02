@@ -2,10 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome')->name('home');
-
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::view('dashboard', 'dashboard')->name('dashboard');
-});
-
-require __DIR__.'/settings.php';
+// Redirect everything to Filament admin panel
+Route::redirect('/', '/admin');
+Route::redirect('/dashboard', '/admin');
+Route::redirect('/login', '/admin/login');
