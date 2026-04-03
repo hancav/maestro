@@ -81,6 +81,10 @@
                                 <strong>Resumir tópico</strong>
                                 <span>Testar o agente sumarizador</span>
                             </button>
+                            <button wire:click="askQuestion('Cria um resumo sobre energias renováveis e gera um relatório em PDF.')" class="mc-ex-btn">
+                                <strong>Gerar relatório PDF</strong>
+                                <span>Testar o agente writer</span>
+                            </button>
                         </div>
                     </div>
                 </div>
