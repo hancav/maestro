@@ -43,6 +43,18 @@ class Agent
                 ]);
             }
 
+            Log::channel('maestro')->info("=== AGENT START: {$this->config->name} ===", [
+                'agent' => $this->config->name,
+                'model' => $this->config->model,
+                'provider' => $this->config->provider,
+                'temperature' => $this->config->temperature,
+                'max_tokens' => $this->config->maxTokens,
+                'tools' => $this->config->tools,
+                'system_prompt_preview' => mb_substr($this->config->systemPrompt, 0, 200),
+                'input_message' => mb_substr($message, 0, 500),
+                'history_count' => count($history),
+            ]);
+
             $response = $this->provider->sendMessage(
                 messages: $messages,
                 systemPrompt: $this->config->systemPrompt,
@@ -53,9 +65,11 @@ class Agent
             $durationMs = round((microtime(true) - $startTime) * 1000, 2);
 
             if (empty(trim($response->text))) {
-                Log::channel('maestro')->warning('Agent returned empty response', [
+                Log::channel('maestro')->warning("=== AGENT EMPTY RESPONSE: {$this->config->name} ===", [
                     'agent' => $this->config->name,
                     'duration_ms' => $durationMs,
+                    'input_tokens' => $response->inputTokens,
+                    'output_tokens' => $response->outputTokens,
                 ]);
 
                 return ProviderResponse::create(
@@ -73,6 +87,14 @@ class Agent
                     'duration_ms' => $durationMs,
                 ]);
             }
+
+            Log::channel('maestro')->info("=== AGENT COMPLETE: {$this->config->name} ===", [
+                'agent' => $this->config->name,
+                'duration_ms' => $durationMs,
+                'input_tokens' => $response->inputTokens,
+                'output_tokens' => $response->outputTokens,
+                'output_preview' => mb_substr($response->text, 0, 500),
+            ]);
 
             return ProviderResponse::create(
                 text: $response->text,

@@ -8,34 +8,60 @@ use Illuminate\Support\Facades\Log;
 class Pipeline
 {
     /**
-     * @param  list<string>  $agentNames
+     * @param  list<array{name: string, instruction: string}|string>  $agentSteps  Agent names or {name, instruction} arrays
      *
      * @throws \InvalidArgumentException
      */
     public function execute(
-        array $agentNames,
+        array $agentSteps,
         string $initialMessage,
         AgentPool $pool,
         ?callable $progressCallback = null,
     ): OrchestrationResult {
-        if (empty($agentNames)) {
+        if (empty($agentSteps)) {
             throw new \InvalidArgumentException('Pipeline requires at least one agent');
         }
+
+        // Normalize steps to [{name, instruction}]
+        $steps = array_map(function (mixed $step): array {
+            if (is_string($step)) {
+                return ['name' => $step, 'instruction' => ''];
+            }
+
+            return [
+                'name' => $step['name'] ?? $step,
+                'instruction' => $step['instruction'] ?? '',
+            ];
+        }, $agentSteps);
 
         $pipelineStart = microtime(true);
         $currentInput = $initialMessage;
         $totalInputTokens = 0;
         $totalOutputTokens = 0;
         $agentHistory = [];
-        $totalAgents = count($agentNames);
+        $totalAgents = count($steps);
 
-        Log::channel('maestro')->info('Pipeline started', [
-            'agents' => $agentNames,
+        Log::channel('maestro')->info('=== PIPELINE STARTED ===', [
+            'steps' => $steps,
             'total_steps' => $totalAgents,
+            'initial_message_preview' => mb_substr($initialMessage, 0, 300),
         ]);
 
-        foreach ($agentNames as $index => $agentName) {
+        foreach ($steps as $index => $step) {
+            $agentName = $step['name'];
+            $instruction = $step['instruction'];
             $stepNumber = $index + 1;
+
+            // For steps after the first, prepend instruction to the previous output
+            if ($stepNumber > 1 && ! empty($instruction)) {
+                $currentInput = "{$instruction}:\n\n{$currentInput}";
+            }
+
+            Log::channel('maestro')->info("=== PIPELINE STEP {$stepNumber}/{$totalAgents} START: {$agentName} ===", [
+                'agent' => $agentName,
+                'instruction' => $instruction,
+                'input_preview' => mb_substr($currentInput, 0, 300),
+            ]);
 
             if ($progressCallback) {
                 $progressCallback(
@@ -54,6 +80,7 @@ class Pipeline
 
                 $agentHistory[] = [
                     'name' => $agentName,
+                    'instruction' => $instruction,
                     'input' => $currentInput,
                     'output' => $response->text,
                     'tokens' => [
@@ -67,18 +94,19 @@ class Pipeline
                 $totalOutputTokens += $response->outputTokens;
                 $currentInput = $response->text;
 
-                Log::channel('maestro')->info('Pipeline step completed', [
+                Log::channel('maestro')->info("=== PIPELINE STEP {$stepNumber}/{$totalAgents} COMPLETE: {$agentName} ===", [
                     'agent' => $agentName,
                     'step' => $stepNumber,
                     'duration_ms' => $stepDuration,
                     'input_tokens' => $response->inputTokens,
                     'output_tokens' => $response->outputTokens,
+                    'input_preview' => mb_substr($agentHistory[count($agentHistory) - 1]['input'], 0, 300),
+                    'output_preview' => mb_substr($response->text, 0, 300),
                 ]);
             } catch (\Exception $e) {
                 $stepDuration = round((microtime(true) - ($stepStart ?? $pipelineStart)) * 1000, 2);
-                $totalDuration = round((microtime(true) - $pipelineStart) * 1000, 2);
 
-                Log::channel('maestro')->error('Pipeline step failed', [
+                Log::channel('maestro')->error("=== PIPELINE STEP {$stepNumber}/{$totalAgents} FAILED: {$agentName} ===", [
                     'agent' => $agentName,
                     'step' => $stepNumber,
                     'error' => $e->getMessage(),
@@ -97,7 +125,7 @@ class Pipeline
 
         $totalDuration = round((microtime(true) - $pipelineStart) * 1000, 2);
 
-        Log::channel('maestro')->info('Pipeline completed', [
+        Log::channel('maestro')->info('=== PIPELINE COMPLETED ===', [
             'total_steps' => $totalAgents,
             'total_duration_ms' => $totalDuration,
             'total_input_tokens' => $totalInputTokens,

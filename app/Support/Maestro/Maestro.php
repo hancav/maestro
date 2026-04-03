@@ -51,11 +51,11 @@ class Maestro
         }
 
         $agents = $routingDecision['agents'] ?? [];
-        $routedMessage = $routingDecision['message'] ?? $message;
+        $agentNames = array_column($agents, 'name');
 
-        Log::channel('maestro')->info('Maestro: routing decidido', [
+        Log::channel('maestro')->info('=== MAESTRO ROUTING DECISION ===', [
             'agents' => $agents,
-            'has_custom_message' => isset($routingDecision['message']),
+            'original_message' => mb_substr($message, 0, 500),
         ]);
 
         if (empty($agents)) {
@@ -76,18 +76,21 @@ class Maestro
         }
 
         if ($progressCallback) {
-            $agentList = implode(' → ', $agents);
+            $agentList = implode(' → ', $agentNames);
             $progressCallback("Maestro: routing decidido — {$agentList}", [
                 'type' => 'routing_complete',
-                'agents' => $agents,
+                'agents' => $agentNames,
             ]);
         }
 
         if (count($agents) === 1) {
-            return $this->executeSingleAgent($agents[0], $routedMessage, $history, $progressCallback, $startTime);
+            $firstAgent = $agents[0];
+            $agentMessage = ! empty($firstAgent['instruction']) ? $firstAgent['instruction'] : $message;
+
+            return $this->executeSingleAgent($firstAgent['name'], $agentMessage, $history, $progressCallback, $startTime);
         }
 
-        return $this->executePipeline($agents, $routedMessage, $progressCallback, $startTime);
+        return $this->executePipeline($agents, $message, $progressCallback, $startTime);
     }
 
     /**
@@ -120,6 +123,12 @@ class Maestro
 
         $response = $routerWithDynamicPrompt->handle($message, $history, $progressCallback);
 
+        Log::channel('maestro')->info('=== MAESTRO ROUTING RAW RESPONSE ===', [
+            'raw_response' => $response->text,
+            'input_tokens' => $response->inputTokens,
+            'output_tokens' => $response->outputTokens,
+        ]);
+
         $json = $this->parseRoutingJson($response->text);
 
         if ($json === null) {
@@ -142,13 +151,14 @@ class Maestro
     }
 
     /**
-     * @return array{agents: list<string>, message?: string}|null
+     * @return array{agents: list<array{name: string, instruction: string}>}|null
      */
     private function parseRoutingJson(string $text): ?array
     {
         $text = trim($text);
 
-        if (preg_match('/\{[^{}]*"agents"\s*:\s*\[.*?\].*?\}/s', $text, $matches)) {
+        // Extract JSON from response
+        if (preg_match('/\{.*"agents"\s*:\s*\[.*\].*\}/s', $text, $matches)) {
             $text = $matches[0];
         }
 
@@ -158,12 +168,23 @@ class Maestro
             return null;
         }
 
-        $agents = array_values(array_filter($decoded['agents'], fn (mixed $a): bool => is_string($a) && $a !== ''));
+        $agents = [];
+        foreach ($decoded['agents'] as $agent) {
+            if (is_string($agent)) {
+                // Legacy format: just agent name string
+                $agents[] = ['name' => $agent, 'instruction' => ''];
+            } elseif (is_array($agent) && isset($agent['name'])) {
+                // New format: {name, instruction}
+                $agents[] = [
+                    'name' => $agent['name'],
+                    'instruction' => $agent['instruction'] ?? '',
+                ];
+            }
+        }
 
-        return [
-            'agents' => $agents,
-            'message' => isset($decoded['message']) && is_string($decoded['message']) ? $decoded['message'] : null,
-        ];
+        $agents = array_values(array_filter($agents, fn (array $a): bool => $a['name'] !== ''));
+
+        return ['agents' => $agents];
     }
 
     private function buildRouterSystemPrompt(): string
@@ -183,14 +204,27 @@ Tu és o Maestro, um orquestrador inteligente de agentes. A tua tarefa é analis
 ## Instruções
 1. Analisa o pedido do utilizador.
 2. Decide qual(is) agente(s) são mais adequados para a tarefa.
-3. Se a tarefa requer múltiplos agentes em sequência, lista-os na ordem de execução.
-4. Responde APENAS com JSON válido no seguinte formato:
+3. Se a tarefa requer múltiplos agentes em sequência (pipeline), lista-os na ordem de execução.
+4. Para cada agente, fornece uma instrução específica que descreve o que esse agente deve fazer.
+5. IMPORTANTE: Quando há um pipeline, o output do agente anterior é passado como input ao seguinte. A instrução de cada agente é PREPENDED ao input que recebe. Por isso, inclui instruções claras para cada agente, especialmente para agentes que recebem output de outros.
 
-{"agents": ["agent1", "agent2"], "message": "mensagem opcional modificada para o primeiro agente"}
+Responde APENAS com JSON válido no seguinte formato:
+
+{"agents": [{"name": "agent1", "instruction": "instrução específica para este agente"}, {"name": "agent2", "instruction": "instrução específica para este agente"}]}
+
+## Exemplos
+
+Pedido: "cria um texto sobre robótica e traduz para inglês"
+Resposta: {"agents": [{"name": "summarizer", "instruction": "cria um pequeno texto sobre robótica"}, {"name": "translator", "instruction": "traduz o seguinte texto para inglês"}]}
+
+Pedido: "resume este artigo"
+Resposta: {"agents": [{"name": "summarizer", "instruction": "resume este artigo"}]}
 
 ## Regras
 - O campo "agents" é obrigatório e deve conter pelo menos um agente.
-- O campo "message" é opcional — usa-o apenas se precisares de reformular a mensagem do utilizador.
+- Cada agente DEVE ter "name" e "instruction".
+- A "instruction" do primeiro agente é a tarefa principal.
+- A "instruction" dos agentes seguintes deve incluir o que fazer com o output do agente anterior (ex: "traduz o seguinte texto para inglês").
 - Se nenhum agente for adequado, retorna: {"agents": []}
 - Responde APENAS com JSON, sem texto adicional.
 PROMPT;
@@ -252,12 +286,20 @@ PROMPT;
 
     private function executePipeline(
         array $agents,
-        string $message,
+        string $originalMessage,
         ?callable $progressCallback,
         float $startTime,
     ): OrchestrationResult {
         $pipeline = new Pipeline;
-        $result = $pipeline->execute($agents, $message, $this->agentPool, $progressCallback);
+        $firstInstruction = ! empty($agents[0]['instruction']) ? $agents[0]['instruction'] : $originalMessage;
+
+        // Build agent steps with per-agent instructions
+        $agentSteps = array_map(fn (array $a): array => [
+            'name' => $a['name'],
+            'instruction' => $a['instruction'] ?? '',
+        ], $agents);
+
+        $result = $pipeline->execute($agentSteps, $firstInstruction, $this->agentPool, $progressCallback);
 
         $duration = round((microtime(true) - $startTime) * 1000, 2);
 
