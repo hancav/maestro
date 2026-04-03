@@ -6,10 +6,6 @@ return [
     |--------------------------------------------------------------------------
     | Maestro Configuration
     |--------------------------------------------------------------------------
-    |
-    | Configuration for the Maestro orchestrator agent. The Maestro uses its
-    | own LLM to analyze tasks and decide which agents to invoke.
-    |
     */
 
     'maestro' => [
@@ -24,10 +20,6 @@ return [
     |--------------------------------------------------------------------------
     | Provider Configurations
     |--------------------------------------------------------------------------
-    |
-    | Settings for each LLM provider. Credentials and connection details
-    | are loaded from environment variables.
-    |
     */
 
     'providers' => [
@@ -52,41 +44,16 @@ return [
     | Agent Definitions
     |--------------------------------------------------------------------------
     |
-    | Declarative agent configurations. Each agent is defined by its name,
-    | description, provider, model, system prompt, and optional tools.
-    | Add or remove agents by editing this array — no code changes needed.
+    | Each agent is defined in its own file under config/agents/.
+    | To add a new agent, create a new file: config/agents/{name}.php
+    | The agent will be automatically available to the Maestro.
     |
     */
 
     'agents' => [
-        'summarizer' => [
-            'name' => 'summarizer',
-            'description' => 'Sumariza textos longos em resumos concisos e estruturados.',
-            'provider' => 'aws-bedrock',
-            'model' => 'us.amazon.nova-lite-v1:0',
-            'system_prompt' => 'Tu és um agente especializado em sumarização de textos. '
-                .'Produz resumos concisos, claros e bem estruturados, mantendo os pontos principais. '
-                .'Responde sempre em português.',
-            'temperature' => 0.3,
-            'max_tokens' => 2048,
-            'tools' => [],
-        ],
-        'translator' => [
-            'name' => 'translator',
-            'description' => 'Traduz textos entre idiomas. Suporta português, inglês, espanhol, francês e outros. Quando o utilizador pede tradução, identifica o idioma de destino a partir do pedido.',
-            'provider' => 'aws-bedrock',
-            'model' => 'us.amazon.nova-lite-v1:0',
-            'system_prompt' => 'Tu és um agente especializado em tradução de textos. '
-                .'Traduz com precisão mantendo o tom e estilo do original. '
-                .'IMPORTANTE: Identifica o idioma de destino a partir do contexto ou do pedido do utilizador. '
-                .'Se o utilizador pedir "traduz para inglês", traduz para inglês. '
-                .'Se o utilizador pedir "traduz para português", traduz para português. '
-                .'Se o idioma de destino não for claro, traduz para inglês por defeito. '
-                .'Responde APENAS com a tradução, sem explicações adicionais.',
-            'temperature' => 0.2,
-            'max_tokens' => 4096,
-            'tools' => [],
-        ],
+        'summarizer' => require __DIR__.'/agents/summarizer.php',
+        'translator' => require __DIR__.'/agents/translator.php',
+        'writer' => require __DIR__.'/agents/writer.php',
     ],
 
 ];
