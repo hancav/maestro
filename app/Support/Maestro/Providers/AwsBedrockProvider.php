@@ -254,7 +254,16 @@ class AwsBedrockProvider implements LlmProvider
             $text = $this->extractTextFromResponse($response);
 
             if (empty(trim($text))) {
-                $text = 'Não foi possível formular uma resposta com base nos dados obtidos. Por favor, tente reformular a sua pergunta.';
+                // If the LLM returned empty after tool execution, try to build
+                // a response from the last successful tool results
+                Log::channel('maestro')->warning('=== EMPTY RESPONSE AFTER TOOLS ===', [
+                    'iteration' => $iteration,
+                    'stop_reason' => $response['stopReason'] ?? null,
+                    'output_tokens' => $response['usage']['outputTokens'] ?? 0,
+                    'tool_results_count' => count($toolResults),
+                ]);
+
+                $text = $this->buildFallbackFromToolResults($toolResults);
             }
 
             return ProviderResponse::create($text, $totalInputTokens, $totalOutputTokens);
@@ -335,5 +344,34 @@ class AwsBedrockProvider implements LlmProvider
         }
 
         return $toolResults;
+    }
+
+    /**
+     * Build a meaningful response from tool results when the LLM returns empty after tool execution.
+     */
+    private function buildFallbackFromToolResults(array $toolResults): string
+    {
+        foreach ($toolResults as $result) {
+            $content = $result['toolResult']['content'] ?? [];
+            foreach ($content as $item) {
+                if (isset($item['json']) && is_array($item['json'])) {
+                    $data = $item['json'];
+                    if (($data['success'] ?? false) && isset($data['data'])) {
+                        $toolData = $data['data'];
+                        // If the tool returned a message, use it
+                        if (isset($toolData['message'])) {
+                            $response = $toolData['message'];
+                            if (isset($toolData['download_url'])) {
+                                $response .= "\n\nDownload: {$toolData['download_url']}";
+                            }
+
+                            return $response;
+                        }
+                    }
+                }
+            }
+        }
+
+        return 'A operação foi concluída mas não foi possível gerar uma resposta descritiva.';
     }
 }
