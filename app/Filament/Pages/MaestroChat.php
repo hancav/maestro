@@ -248,9 +248,20 @@ class MaestroChat extends Page
         $agentConfigs = config('agents.agents', []);
         $maestroConfig = config('agents.maestro', []);
 
-        $toolExecutor = new ToolExecutor;
+        // Registry of available tools
+        $availableTools = [
+            'write_pdf_report' => new \App\Support\Maestro\Tools\PdfWriterTool,
+        ];
 
-        $providerFactory = function (AgentConfig $config) use ($toolExecutor): Agent {
+        $providerFactory = function (AgentConfig $config) use ($availableTools): Agent {
+            // Each agent gets its own ToolExecutor with only the tools it needs
+            $toolExecutor = new ToolExecutor;
+            foreach ($config->tools as $toolName) {
+                if (isset($availableTools[$toolName])) {
+                    $toolExecutor->register($availableTools[$toolName]);
+                }
+            }
+
             $provider = $this->createProvider($config->provider, $toolExecutor);
 
             return new Agent(
@@ -266,18 +277,19 @@ class MaestroChat extends Page
             'name' => 'maestro-router',
             'description' => 'Agente de routing do Maestro',
             'provider' => $maestroConfig['provider'] ?? 'aws-bedrock',
-            'model' => $maestroConfig['model'] ?? 'us.anthropic.claude-3-5-haiku-20241022-v1:0',
+            'model' => $maestroConfig['model'] ?? 'us.amazon.nova-pro-v1:0',
             'system_prompt' => $maestroConfig['system_prompt'] ?? 'Tu és o Maestro.',
             'temperature' => $maestroConfig['temperature'] ?? 0.3,
             'max_tokens' => $maestroConfig['max_tokens'] ?? 1024,
         ]);
 
-        $routerProvider = $this->createProvider($routerAgentConfig->provider, $toolExecutor);
+        $routerToolExecutor = new ToolExecutor;
+        $routerProvider = $this->createProvider($routerAgentConfig->provider, $routerToolExecutor);
 
         $routerAgent = new Agent(
             config: $routerAgentConfig,
             provider: $routerProvider,
-            toolExecutor: $toolExecutor,
+            toolExecutor: $routerToolExecutor,
         );
 
         return new Maestro(
