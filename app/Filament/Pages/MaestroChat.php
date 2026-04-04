@@ -251,6 +251,7 @@ class MaestroChat extends Page
         // Registry of available tools
         $availableTools = [
             'write_pdf_report' => new \App\Support\Maestro\Tools\PdfWriterTool,
+            'send_email' => new \App\Support\Maestro\Tools\SendEmailTool,
         ];
 
         $providerFactory = function (AgentConfig $config) use ($availableTools): Agent {

@@ -54,6 +54,7 @@ return [
         'summarizer' => require __DIR__.'/agents/summarizer.php',
         'translator' => require __DIR__.'/agents/translator.php',
         'writer' => require __DIR__.'/agents/writer.php',
+        'mailer' => require __DIR__.'/agents/mailer.php',
     ],
 
 ];
