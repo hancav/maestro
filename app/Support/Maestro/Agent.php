@@ -7,6 +7,7 @@ use App\Support\Maestro\DTOs\AgentConfig;
 use App\Support\Maestro\DTOs\ProviderResponse;
 use App\Support\Maestro\Tools\ToolExecutor;
 use Illuminate\Support\Facades\Log;
+use App\Support\Maestro\ContextManager;
 
 class Agent
 {
@@ -53,11 +54,15 @@ class Agent
                 'system_prompt_preview' => mb_substr($this->config->systemPrompt, 0, 200),
                 'input_message' => mb_substr($message, 0, 500),
                 'history_count' => count($history),
+                'context_metadata' => ContextManager::getContextMetadata(),
             ]);
+
+            // Inject dynamic temporal context into system prompt
+            $contextualPrompt = ContextManager::buildContextualSystemPrompt($this->config->systemPrompt);
 
             $response = $this->provider->sendMessage(
                 messages: $messages,
-                systemPrompt: $this->config->systemPrompt,
+                systemPrompt: $contextualPrompt,
                 model: $this->config->model,
                 config: $providerConfig,
             );
