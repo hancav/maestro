@@ -85,6 +85,10 @@
                                 <strong>Gerar relatório PDF</strong>
                                 <span>Testar o agente writer</span>
                             </button>
+                            <button wire:click="askQuestion('Faz um resumo sobre cibersegurança, escreve um relatório profissional e envia por email.')" class="mc-ex-btn">
+                                <strong>Enviar Relatório</strong>
+                                <span>Testar o agente mailer</span>
+                            </button>
                         </div>
                     </div>
                 </div>
