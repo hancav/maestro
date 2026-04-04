@@ -69,7 +69,98 @@ Resultado:
 
 ---
 
-## 📧 send_email
+## � web_search
+
+**ID:** `web_search`
+
+**Descrição:** Pesquisa na internet por informação sobre um tópico e retorna resultados relevantes com títulos, descrições e URLs.
+
+**Agentes com Acesso:**
+
+- `researcher` - Agente de pesquisa e elaboração de análises
+
+**Parâmetros:**
+
+| Parâmetro     | Tipo    | Obrigatório | Descrição                                |
+| ------------- | ------- | ----------- | ---------------------------------------- |
+| `query`       | string  | ✅ Sim      | Termo de pesquisa ou tópico a investigar |
+| `num_results` | integer | ❌ Não      | Número de resultados (máx 10, padrão: 5) |
+
+**Resposta de Sucesso:**
+
+```json
+{
+    "query": "computação quântica",
+    "results_count": 5,
+    "results": [
+        {
+            "title": "Sobre Computação Quântica - Wikipédia",
+            "url": "https://pt.wikipedia.org/wiki/Computa%C3%A7%C3%A3o_qu%C3%A2ntica",
+            "snippet": "Informação detalhada e referenciada sobre computação quântica..."
+        },
+        {
+            "title": "Computação Quântica: Guia Completo",
+            "url": "https://example.com/guide-quantum",
+            "snippet": "Um guia abrangente sobre computação quântica e suas aplicações..."
+        }
+    ],
+    "formatted_text": "# Resultados da Pesquisa: computação quântica\n\n## 1. Sobre Computação Quântica...",
+    "message": "Pesquisa completada. Encontrados 5 resultados para 'computação quântica'."
+}
+```
+
+**Exemplo de Uso:**
+
+O agente researcher envia:
+
+```
+query: "computação quântica"
+num_results: 5
+```
+
+Resultado:
+
+- 🔍 Pesquisa realizada na internet
+- 📝 Resultados formatados como texto legível
+- 🔗 URLs de referência incluídas
+
+**Logs:**
+
+```
+[maestro] WebSearchTool: iniciando pesquisa {
+  "query": "computação quântica",
+  "num_results": 5
+}
+
+[maestro] WebSearchTool: pesquisa concluída {
+  "query": "computação quântica",
+  "results_count": 5
+}
+```
+
+**Provedores Suportados:**
+
+1. **Serper API** (recomendado)
+    - Requer `SERPER_API_KEY` no `.env`
+    - Pesquisa com resultados de alta qualidade
+    - Suporte para múltiplos idiomas e regiões
+
+2. **Fallback DuckDuckGo** (sem API key)
+    - Funciona sem configuração adicional
+    - Gera resultados mock realistas (para demonstração)
+    - Ideal para testes e desenvolvimento
+
+**Configuração (Opcional):**
+
+Para usar Serper API (melhor qualidade):
+
+```env
+SERPER_API_KEY=sua-chave-api-aqui
+```
+
+---
+
+## �📧 send_email
 
 **ID:** `send_email`
 
@@ -166,7 +257,23 @@ from_name: "Maestro"
 
 ## 🔄 Fluxos de Ferramentas
 
-### Fluxo 1: Writer → Mailer
+### Fluxo 1: Researcher → Writer → Mailer
+
+```
+1. Researcher usa web_search para pesquisar na internet
+   ↓
+2. Resultados são analisados e reformulados em texto profissional
+   ↓
+3. Writer usa write_pdf_report para gerar PDF
+   ↓
+4. PDF é salvo em /storage/reports/report-xxx.pdf
+   ↓
+5. Mailer usa send_email com pdf_path
+   ↓
+6. Email enviado com PDF anexado
+```
+
+### Fluxo 2: Writer → Mailer
 
 ```
 1. Writer usa write_pdf_report para gerar PDF
@@ -180,7 +287,7 @@ from_name: "Maestro"
 5. Email enviado com PDF anexado
 ```
 
-### Fluxo 2: Pipeline Completo
+### Fluxo 3: Pipeline Summarizer
 
 ```
 1. Summarizer: Cria resumo (sem ferramentas)
@@ -190,14 +297,25 @@ from_name: "Maestro"
 3. Mailer: Usa send_email com PDF → Envia email
 ```
 
+### Fluxo 4: Pipeline Researcher Único
+
+```
+1. Researcher usa web_search para pesquisar
+   ↓
+2. Elabora texto profissional e detalhado
+   ↓
+3. Resposta é enviada ao utilizador
+```
+
 ---
 
 ## 📊 Tabela Resumida
 
-| Tool               | Agente | Entrada         | Saída          | Efeito                 |
-| ------------------ | ------ | --------------- | -------------- | ---------------------- |
-| `write_pdf_report` | writer | HTML            | PDF File + URL | Cria ficheiro em disco |
-| `send_email`       | mailer | HTML + PDF Path | Email Enviado  | Envia via SMTP         |
+| Tool               | Agente     | Entrada         | Saída          | Efeito                 |
+| ------------------ | ---------- | --------------- | -------------- | ---------------------- |
+| `web_search`       | researcher | Query           | JSON + Texto   | Pesquisa na internet   |
+| `write_pdf_report` | writer     | HTML            | PDF File + URL | Cria ficheiro em disco |
+| `send_email`       | mailer     | HTML + PDF Path | Email Enviado  | Envia via SMTP         |
 
 ---
 

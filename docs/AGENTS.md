@@ -90,7 +90,38 @@ Cria um resumo sobre energias renováveis e gera um relatório em PDF.
 
 ---
 
-## 📧 Mailer
+## � Researcher
+
+**Nome:** `researcher`
+
+**Descrição:** Investiga a fundo sobre um assunto ou tópico pesquisando na internet e elabora um texto detalhado mas conciso, profissional e objectivo.
+
+**Modelo:** AWS Bedrock - Nova Lite v1.0
+
+**Temperatura:** 0.4 (criativo mas factual)
+
+**Max Tokens:** 3072
+
+**Ferramentas Disponíveis:**
+
+- `web_search` - Pesquisa na internet sobre um tópico
+
+**Casos de Uso:**
+
+- Investigar tópicos em profundidade
+- Pesquisa sobre tendências e inovações
+- Elaborar análises profissionais baseadas em fontes
+- Gerar conteúdo informativo e actualizado
+
+**Exemplo de Prompt:**
+
+```
+Pesquisa sobre computação quântica e elabora um texto profissional detalhado.
+```
+
+---
+
+## �📧 Mailer
 
 **Nome:** `mailer`
 
@@ -131,7 +162,23 @@ Prompt: "Faz um resumo sobre cibersegurança, escreve um relatório profissional
 summarizer → writer → mailer
 ```
 
-### Pipeline 2: Resumo + Relatório
+### Pipeline 2: Pesquisa + Relatório + Email
+
+```
+Prompt: "Pesquisa sobre tendências em IA, cria um relatório profissional e envia por email."
+
+researcher → writer → mailer
+```
+
+### Pipeline 3: Pesquisa + Resumo + Relatório
+
+```
+Prompt: "Pesquisa sobre blockchain, resume os pontos-chave e cria um relatório PDF."
+
+researcher → summarizer → writer
+```
+
+### Pipeline 4: Resumo + Relatório
 
 ```
 Prompt: "Resume o artigo sobre IA e cria um relatório em PDF."
@@ -139,7 +186,7 @@ Prompt: "Resume o artigo sobre IA e cria um relatório em PDF."
 summarizer → writer
 ```
 
-### Pipeline 3: Tradução + Relatório + Email
+### Pipeline 5: Tradução + Relatório + Email
 
 ```
 Prompt: "Traduz um artigo para inglês, cria um relatório e envia por email."
@@ -147,24 +194,38 @@ Prompt: "Traduz um artigo para inglês, cria um relatório e envia por email."
 translator → writer → mailer
 ```
 
-### Pipeline 4: Agente Único
+### Pipeline 6: Agente Único
 
 ```
 Prompt: "Traduz para português: Hello, how are you?"
 
 translator (únicamente)
+
+---
+
+Prompt: "Pesquisa sobre cibersegurança e elabora um texto profissional."
+
+researcher (únicamente)
+
+```
+
+Prompt: "Traduz para português: Hello, how are you?"
+
+translator (únicamente)
+
 ```
 
 ---
 
 ## 📊 Tabela Comparativa
 
-| Agente     | Modelo    | Ferramentas      | Complexidade |
-| ---------- | --------- | ---------------- | ------------ |
-| Summarizer | Nova Lite | ✗                | Baixa        |
-| Translator | Nova Lite | ✗                | Baixa        |
+| Agente     | Modelo    | Ferramentas  | Complexidade |
+| ---------- | --------- | ------------ | ------------ |
+| Summarizer | Nova Lite | ✗            | Baixa        |
+| Translator | Nova Lite | ✗            | Baixa        |
+| Researcher | Nova Lite | web_search   | Média        |
 | Writer     | Nova Lite | write_pdf_report | Média        |
-| Mailer     | Nova Lite | send_email       | Média        |
+| Mailer     | Nova Lite | send_email   | Média        |
 
 ---
 
@@ -178,3 +239,4 @@ O Maestro usa um **router agent** inteligente que:
 4. **Passa** o output de um agente como input do seguinte
 
 Este sistema permite criar workflows complexos a partir de prompts naturais!
+```
