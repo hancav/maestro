@@ -267,36 +267,36 @@ from_name: "Maestro"
 
 **Parâmetros:**
 
-| Parâmetro | Tipo   | Obrigatório | Descrição                                           |
-| --------- | ------ | ----------- | --------------------------------------------------- |
-| `title`   | string | ✅ Sim      | Título da folha de cálculo                          |
+| Parâmetro | Tipo   | Obrigatório | Descrição                                               |
+| --------- | ------ | ----------- | ------------------------------------------------------- |
+| `title`   | string | ✅ Sim      | Título da folha de cálculo                              |
 | `data`    | array  | ✅ Sim      | Array de objectos com os dados (cada objecto = 1 linha) |
-| `columns` | array  | ❌ Não      | Array com nomes das colunas (cabeçalhos)            |
-| `format`  | string | ❌ Não      | Formato: `csv` (padrão) ou `xlsx` (se disponível)  |
+| `columns` | array  | ❌ Não      | Array com nomes das colunas (cabeçalhos)                |
+| `format`  | string | ❌ Não      | Formato: `csv` (padrão) ou `xlsx` (se disponível)       |
 
 **Estrutura de Dados:**
 
 ```json
 {
-  "title": "Resultados Vendas - Março 2026",
-  "columns": ["Data", "Produto", "Quantidade", "Preço Unitário", "Total"],
-  "data": [
-    {
-      "Data": "2026-03-01",
-      "Produto": "Produto A",
-      "Quantidade": 10,
-      "Preço Unitário": 25.50,
-      "Total": 255.00
-    },
-    {
-      "Data": "2026-03-02",
-      "Produto": "Produto B",
-      "Quantidade": 5,
-      "Preço Unitário": 100.00,
-      "Total": 500.00
-    }
-  ],
-  "format": "csv"
+    "title": "Resultados Vendas - Março 2026",
+    "columns": ["Data", "Produto", "Quantidade", "Preço Unitário", "Total"],
+    "data": [
+        {
+            "Data": "2026-03-01",
+            "Produto": "Produto A",
+            "Quantidade": 10,
+            "Preço Unitário": 25.5,
+            "Total": 255.0
+        },
+        {
+            "Data": "2026-03-02",
+            "Produto": "Produto B",
+            "Quantidade": 5,
+            "Preço Unitário": 100.0,
+            "Total": 500.0
+        }
+    ],
+    "format": "csv"
 }
 ```
 
@@ -459,12 +459,12 @@ Resultado:
 
 ## 📊 Tabela Resumida
 
-| Tool                | Agente      | Entrada             | Saída                | Efeito                           |
-| ------------------- | ----------- | ------------------- | -------------------- | -------------------------------- |
-| `web_search`        | researcher  | Query               | JSON + Texto         | Pesquisa na internet             |
-| `write_pdf_report`  | writer      | HTML                | PDF File + URL       | Cria ficheiro em disco           |
-| `send_email`        | mailer      | HTML + PDF/CSV Path | Email Enviado        | Envia via SMTP                   |
-| `write_spreadsheet` | spreadsheet | JSON Array + Columns| CSV/Excel + URL      | Cria folha de cálculo em disco   |
+| Tool                | Agente      | Entrada              | Saída           | Efeito                         |
+| ------------------- | ----------- | -------------------- | --------------- | ------------------------------ |
+| `web_search`        | researcher  | Query                | JSON + Texto    | Pesquisa na internet           |
+| `write_pdf_report`  | writer      | HTML                 | PDF File + URL  | Cria ficheiro em disco         |
+| `send_email`        | mailer      | HTML + PDF/CSV Path  | Email Enviado   | Envia via SMTP                 |
+| `write_spreadsheet` | spreadsheet | JSON Array + Columns | CSV/Excel + URL | Cria folha de cálculo em disco |
 
 ---
 

@@ -300,4 +300,7 @@ O Maestro usa um **router agent** inteligente que:
 4. **Passa** o output de um agente como input do seguinte
 
 Este sistema permite criar workflows complexos a partir de prompts naturais!
+
+```
+
 ```
