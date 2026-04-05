@@ -56,6 +56,7 @@ return [
         'writer' => require __DIR__.'/agents/writer.php',
         'mailer' => require __DIR__.'/agents/mailer.php',
         'researcher' => require __DIR__.'/agents/researcher.php',
+        'spreadsheet' => require __DIR__.'/agents/spreadsheet.php',
     ],
 
 ];

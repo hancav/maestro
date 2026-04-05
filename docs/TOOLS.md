@@ -255,9 +255,135 @@ from_name: "Maestro"
 
 ---
 
+## � write_spreadsheet
+
+**ID:** `write_spreadsheet`
+
+**Descrição:** Gera folhas de cálculo (CSV ou Excel) com dados tabulares numéricos. Ideal para relatórios de vendas, métricas, lucros e análises estruturadas.
+
+**Agentes com Acesso:**
+
+- `spreadsheet` - Agente de análise de dados e geração de relatórios tabulares
+
+**Parâmetros:**
+
+| Parâmetro | Tipo   | Obrigatório | Descrição                                           |
+| --------- | ------ | ----------- | --------------------------------------------------- |
+| `title`   | string | ✅ Sim      | Título da folha de cálculo                          |
+| `data`    | array  | ✅ Sim      | Array de objectos com os dados (cada objecto = 1 linha) |
+| `columns` | array  | ❌ Não      | Array com nomes das colunas (cabeçalhos)            |
+| `format`  | string | ❌ Não      | Formato: `csv` (padrão) ou `xlsx` (se disponível)  |
+
+**Estrutura de Dados:**
+
+```json
+{
+  "title": "Resultados Vendas - Março 2026",
+  "columns": ["Data", "Produto", "Quantidade", "Preço Unitário", "Total"],
+  "data": [
+    {
+      "Data": "2026-03-01",
+      "Produto": "Produto A",
+      "Quantidade": 10,
+      "Preço Unitário": 25.50,
+      "Total": 255.00
+    },
+    {
+      "Data": "2026-03-02",
+      "Produto": "Produto B",
+      "Quantidade": 5,
+      "Preço Unitário": 100.00,
+      "Total": 500.00
+    }
+  ],
+  "format": "csv"
+}
+```
+
+**Resposta de Sucesso:**
+
+```json
+{
+    "filename": "spreadsheet-resultados-vendas-marcos-2026-20260404-145757.csv",
+    "filepath": "/storage/reports/spreadsheet-resultados-vendas-marcos-2026-20260404-145757.csv",
+    "download_url": "/storage/reports/spreadsheet-resultados-vendas-marcos-2026-20260404-145757.csv",
+    "title": "Resultados Vendas - Março 2026",
+    "format": "csv",
+    "rows": 2,
+    "columns": 5,
+    "message": "Folha de cálculo CSV gerada com sucesso."
+}
+```
+
+**Exemplo de Uso:**
+
+O agente spreadsheet envia:
+
+```
+title: "Resultados de Vendas - Março 2026"
+columns: ["Data", "Produto", "Quantidade", "Preço", "Total"]
+data: [
+  {"Data": "2026-03-01", "Produto": "Produto A", "Quantidade": 10, "Preço": 25.50, "Total": 255.00},
+  {"Data": "2026-03-02", "Produto": "Produto B", "Quantidade": 5, "Preço": 100.00, "Total": 500.00}
+]
+format: "csv"
+```
+
+Resultado:
+
+- 📊 CSV gerado em `/storage/reports/spreadsheet-resultados-vendas-marco-2026-20260404-145757.csv`
+- 🔗 URL de download: `/storage/reports/spreadsheet-resultados-vendas-marco-2026-20260404-145757.csv`
+- 📈 Compatível com Excel e ferramentas similares
+
+**Formato CSV:**
+
+- ✅ UTF-8 com BOM (compatível com Excel)
+- ✅ Separador: `;` (ponto-e-vírgula) - padrão português
+- ✅ Headers automáticos da lista de colunas
+- ✅ Preserva ordem das colunas definidas
+
+**Logs:**
+
+```
+[maestro] === CSV SPREADSHEET GENERATED === {
+  "title": "Resultados Vendas - Março 2026",
+  "filename": "spreadsheet-...-20260404-145757.csv",
+  "format": "csv",
+  "rows": 2,
+  "columns": 5,
+  "size_bytes": 230
+}
+```
+
+**Validações:**
+
+- ✅ Título obrigatório e não vazio
+- ✅ Array de dados obrigatório e não vazio
+- ✅ Colunas extraídas automaticamente do primeiro objecto se não fornecidas
+- ✅ Ordem de colunas respeitada quando definida
+- ✅ Fallback automático de XLSX para CSV se biblioteca não disponível
+
+---
+
 ## 🔄 Fluxos de Ferramentas
 
-### Fluxo 1: Researcher → Writer → Mailer
+### Fluxo 1: Researcher → Spreadsheet → Mailer
+
+```
+1. Researcher usa web_search para pesquisar dados
+   ↓
+2. Resultados são analisados e estruturados em dados tabulares
+   ↓
+3. Spreadsheet usa write_spreadsheet para gerar CSV
+   ↓
+4. CSV é salvo em /storage/reports/spreadsheet-xxx.csv
+   ↓
+5. Mailer usa send_email com csv_path
+   ↓
+6. Email enviado com CSV anexado
+```
+
+### Fluxo 2: Writer → Mailer
 
 ```
 1. Researcher usa web_search para pesquisar na internet
@@ -287,7 +413,29 @@ from_name: "Maestro"
 5. Email enviado com PDF anexado
 ```
 
-### Fluxo 3: Pipeline Summarizer
+### Fluxo 3: Spreadsheet Único
+
+```
+1. Spreadsheet usa write_spreadsheet para gerar CSV
+   ↓
+2. CSV é salvo em /storage/reports/spreadsheet-xxx.csv
+   ↓
+3. Resposta com URL de download é enviada ao utilizador
+```
+
+### Fluxo 4: Spreadsheet → Mailer
+
+```
+1. Spreadsheet usa write_spreadsheet para gerar CSV
+   ↓
+2. CSV é salvo em /storage/reports/spreadsheet-xxx.csv
+   ↓
+3. Mailer usa send_email com csv_path
+   ↓
+4. Email enviado com CSV anexado
+```
+
+### Fluxo 5: Pipeline Summarizer
 
 ```
 1. Summarizer: Cria resumo (sem ferramentas)
@@ -297,7 +445,7 @@ from_name: "Maestro"
 3. Mailer: Usa send_email com PDF → Envia email
 ```
 
-### Fluxo 4: Pipeline Researcher Único
+### Fluxo 6: Pipeline Researcher Único
 
 ```
 1. Researcher usa web_search para pesquisar
@@ -311,11 +459,12 @@ from_name: "Maestro"
 
 ## 📊 Tabela Resumida
 
-| Tool               | Agente     | Entrada         | Saída          | Efeito                 |
-| ------------------ | ---------- | --------------- | -------------- | ---------------------- |
-| `web_search`       | researcher | Query           | JSON + Texto   | Pesquisa na internet   |
-| `write_pdf_report` | writer     | HTML            | PDF File + URL | Cria ficheiro em disco |
-| `send_email`       | mailer     | HTML + PDF Path | Email Enviado  | Envia via SMTP         |
+| Tool                | Agente      | Entrada             | Saída                | Efeito                           |
+| ------------------- | ----------- | ------------------- | -------------------- | -------------------------------- |
+| `web_search`        | researcher  | Query               | JSON + Texto         | Pesquisa na internet             |
+| `write_pdf_report`  | writer      | HTML                | PDF File + URL       | Cria ficheiro em disco           |
+| `send_email`        | mailer      | HTML + PDF/CSV Path | Email Enviado        | Envia via SMTP                   |
+| `write_spreadsheet` | spreadsheet | JSON Array + Columns| CSV/Excel + URL      | Cria folha de cálculo em disco   |
 
 ---
 

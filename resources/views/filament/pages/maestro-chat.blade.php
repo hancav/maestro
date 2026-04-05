@@ -89,6 +89,10 @@
                                 <strong>Gerar Relatório</strong>
                                 <span>Testar o agente writer</span>
                             </button>
+                            <button wire:click="askQuestion('Gera uma folha de cálculo com os resultados de vendas do mês passado.')" class="mc-ex-btn">
+                                <strong>Gerar Spreadsheet</strong>
+                                <span>Testar o agente spreadsheet</span>
+                            </button>
                             <button wire:click="askQuestion('Faz um resumo sobre cibersegurança, escreve um relatório profissional e envia por email.')" class="mc-ex-btn">
                                 <strong>Enviar Relatório</strong>
                                 <span>Testar o agente mailer</span>

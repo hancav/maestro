@@ -152,7 +152,43 @@ Faz um resumo sobre cibersegurança, escreve um relatório profissional e envia 
 
 ---
 
-## 🔄 Pipelines Recomendados
+## � Spreadsheet
+
+**Nome:** `spreadsheet`
+
+**Descrição:** Análise de dados e geração de folhas de cálculo. Especializado em criar relatórios tabulares com dados numéricos, vendas, lucros, métricas e análises de dados estruturados em CSV ou Excel.
+
+**Modelo:** AWS Bedrock - Nova Lite v1.0
+
+**Temperatura:** 0.2 (alta precisão em dados)
+
+**Max Tokens:** 2048
+
+**Ferramentas Disponíveis:**
+
+- `write_spreadsheet` - Gera folhas de cálculo em CSV ou Excel com dados tabulares
+
+**Casos de Uso:**
+
+- Gerar relatórios de vendas
+- Criar folhas de cálculo com métricas
+- Analisar lucros e resultados
+- Tabular dados numéricos estruturados
+- Exportar dados em formato Excel/CSV
+
+**Exemplo de Prompt:**
+
+```
+Gera uma folha de cálculo com os resultados de vendas do mês passado.
+```
+
+```
+Cria um documento excel com os lucros apurados do último mês.
+```
+
+---
+
+## �🔄 Pipelines Recomendados
 
 ### Pipeline 1: Resumo + Relatório + Email
 
@@ -194,7 +230,31 @@ Prompt: "Traduz um artigo para inglês, cria um relatório e envia por email."
 translator → writer → mailer
 ```
 
-### Pipeline 6: Agente Único
+### Pipeline 6: Pesquisa + Spreadsheet
+
+```
+Prompt: "Pesquisa sobre vendas de tech em 2025 e cria uma folha de cálculo com os dados."
+
+researcher → spreadsheet
+```
+
+### Pipeline 7: Spreadsheet + Email
+
+```
+Prompt: "Gera uma folha de cálculo com os resultados mensais e envia por email."
+
+spreadsheet → mailer
+```
+
+### Pipeline 8: Pesquisa + Spreadsheet + Email
+
+```
+Prompt: "Pesquisa sobre marketshare da indústria tech, cria uma tabela e envia por email."
+
+researcher → spreadsheet → mailer
+```
+
+### Pipeline 9: Agente Único
 
 ```
 Prompt: "Traduz para português: Hello, how are you?"
@@ -207,11 +267,11 @@ Prompt: "Pesquisa sobre cibersegurança e elabora um texto profissional."
 
 researcher (únicamente)
 
-```
+---
 
-Prompt: "Traduz para português: Hello, how are you?"
+Prompt: "Gera uma folha de cálculo com os resultados de vendas do último trimestre."
 
-translator (únicamente)
+spreadsheet (únicamente)
 
 ```
 
@@ -219,13 +279,14 @@ translator (únicamente)
 
 ## 📊 Tabela Comparativa
 
-| Agente     | Modelo    | Ferramentas  | Complexidade |
-| ---------- | --------- | ------------ | ------------ |
-| Summarizer | Nova Lite | ✗            | Baixa        |
-| Translator | Nova Lite | ✗            | Baixa        |
-| Researcher | Nova Lite | web_search   | Média        |
-| Writer     | Nova Lite | write_pdf_report | Média        |
-| Mailer     | Nova Lite | send_email   | Média        |
+| Agente      | Modelo    | Ferramentas       | Complexidade |
+| ----------- | --------- | ----------------- | ------------ |
+| Summarizer  | Nova Lite | ✗                 | Baixa        |
+| Translator  | Nova Lite | ✗                 | Baixa        |
+| Researcher  | Nova Lite | web_search        | Média        |
+| Writer      | Nova Lite | write_pdf_report  | Média        |
+| Mailer      | Nova Lite | send_email        | Média        |
+| Spreadsheet | Nova Lite | write_spreadsheet | Média        |
 
 ---
 
