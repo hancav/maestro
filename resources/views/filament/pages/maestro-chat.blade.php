@@ -75,18 +75,18 @@
                         <div class="mc-examples">
                             <button wire:click="askQuestion('Traduz para inglês: Portugal é um país com uma história rica.')" class="mc-ex-btn">
                                 <strong>Traduzir texto</strong>
-                                <span>Testar o agente tradutor</span>
+                                <span>Testar o agente translator</span>
                             </button>
                             <button wire:click="askQuestion('Resume em 3 frases o que é inteligência artificial.')" class="mc-ex-btn">
                                 <strong>Resumir tópico</strong>
-                                <span>Testar o agente sumarizador</span>
+                                <span>Testar o agente summarizer</span>
                             </button>
                             <button wire:click="askQuestion('Pesquisa sobre computação quântica e elabora um texto profissional detalhado.')" class="mc-ex-btn">
                                 <strong>Pesquisar Tópico</strong>
                                 <span>Testar o agente researcher</span>
                             </button>
                             <button wire:click="askQuestion('Cria um resumo sobre energias renováveis e gera um relatório em PDF.')" class="mc-ex-btn">
-                                <strong>Gerar relatório PDF</strong>
+                                <strong>Gerar Relatório</strong>
                                 <span>Testar o agente writer</span>
                             </button>
                             <button wire:click="askQuestion('Faz um resumo sobre cibersegurança, escreve um relatório profissional e envia por email.')" class="mc-ex-btn">
